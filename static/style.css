@@ -1,0 +1,180 @@
+body {
+  background-color: #333366;
+  margin: 0;
+}
+
+.container {
+  width: 960px;
+  height: 100%;
+  margin: auto;
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 0 20px black;
+  font-family: sans-serif;
+}
+hero {
+  margin: auto;
+  width: 600px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 2fr 1fr;
+}
+
+h1, h2, h3 {
+  font-family: 'Rowdies', cursive;
+}
+
+hero h1 {
+  display: block;
+  grid-column: 1/3;
+  grid-row: 1/3;
+  z-index: 4;
+  margin: auto;
+
+  font-size: 80px;
+  color: white;
+  text-shadow: 1px 1px 5px black, 3px 3px 2px orange, -3px -1px 2px blue;
+  font-family: 'Rowdies', cursive;
+}
+
+logo {
+  display: grid;
+  grid-column: 1/3;
+  grid-row: 1/3;
+  height: 300px;
+  width: 600px;
+}
+
+logo img {
+  grid-column: 1/3;
+  grid-row: 1/3;
+}
+
+logo img#tv {
+  height: 300px;
+  padding-left: 60px;
+}
+
+logo img#popcorn {
+  height: 200px;
+  padding-top: 100px;
+}
+
+button {
+  color: white;
+  text-shadow: -1px -1px 2px black;
+  font-family: sans-serif;
+  background-color: orange;
+}
+
+hero button {
+  margin: 20px 40px 20px 40px;
+  font-size: 24px;
+  background-color: orange;
+  grid-column: 2/3;
+  grid-row: 2/3;
+  border: 7px outset orange;
+  border-radius: 20px;
+  box-shadow: 0 0 4px magenta;
+  filter: drop-shadow(10px 4px 4px #4444dd);
+}
+
+.header {
+  display: flex;
+  background-color: blue;
+  color: white;
+  font-family: 'Rowdies', cursive;
+  z-index: 2;
+}
+
+.header h2 {
+  font-size: 45px;
+  text-shadow: 1px 1px 5px black, 3px 3px 2px orange, -3px -1px 2px blue;
+  font-family: 'Rowdies', cursive;
+  padding: 10px;
+  display: block;
+  flex-basis: 400px;
+}
+
+.header h2 a {
+  color: white;
+  text-decoration: none;
+}
+
+.header invite {
+  width: 100%;
+  flex-basis: auto;
+  padding: 30px;
+  display: inline;
+  text-align: right;
+}
+
+.header invite a {
+  font-family: sans-serif;
+  font-weight: bold;
+  color: hotpink;
+}
+
+.clip {
+  overflow: hidden;
+}
+
+.chat {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  height: 100%;
+}
+
+.chat .comment_box {
+  margin-right: 20px;
+  padding-right: 20px;
+  height: 100%;
+  border-right: 8px solid lightgray;
+}
+
+.chat .comment_box textarea {
+  display: block;
+  width: 100%
+}
+
+.chat .comment_box button {
+  border-radius: 5px;
+  padding: 10px;
+  border: none;
+  margin-top: 15px;
+}
+
+.chat .comment_box label {
+  display: block;
+  font-family: 'Rowdies', cursive;
+  margin-bottom: 10px;
+}
+
+.chat .messages {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: min-content;
+  grid-auto-rows: min-content;
+  height: auto;
+}
+
+.chat message {
+  display: grid;
+  grid-column: 1/3;
+  grid-template-columns: 200px 1fr;
+  border-bottom: 1px solid lightgray;
+}
+
+.chat message author {
+  color: #c93;
+  font-weight: bold;
+  display: block;
+  padding: 5px;
+  grid-column: 1/2;
+}
+
+.chat message content {
+  display: block;
+  padding: 5px;
+  grid-column: 2/3;
+}
