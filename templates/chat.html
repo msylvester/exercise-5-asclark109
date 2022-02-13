@@ -24,27 +24,11 @@
     <div class="comment_box">
       <form>
         <label for="comment">What do you have to say?</label>
-        <textarea name="comment"></textarea>
-        <button type="submit" value="Post">Post</button>
+        <textarea id="messageBox" name="comment"></textarea>
+        <button id="submitButton" type="submit"  value="Post">Post</button>
       </form>
     </div>
     <div class="messages">
-      <message>
-        <author>Mr Chatterworth</author>
-        <content>Chat chat chat</content>
-      </message>
-      <message>
-        <author>big chats</author>
-        <content>Chat chat chat</content>
-      </message>
-      <message>
-        <author>Mr Chatterworth</author>
-        <content>Chat chat chat</content>
-      </message>
-      <message>
-        <author>Chatty Cat</author>
-        <content>Chat chat chat</content>
-      </message>
     </div>
   </div>
 
@@ -52,6 +36,8 @@
 </div>
 
 <script>
+//getMessages()
+document.getElementById("submitButton").onclick = postMessage;
 startMessagePolling();
 </script>
 

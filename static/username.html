@@ -14,10 +14,18 @@
     <h2>Welcome to Watch Party!</h2>
     <p>Enter a username</p>
     <input id="username"></input>
-    <button>Update</button>
+    <button id="updateUsernameButton">Update</button>
   </div>
 
 </div>
-
+  <!-- NEW: when user hit "update" button, his local username gets updated -->
+  <script>
+    document.getElementById("updateUsernameButton").onclick = function () {
+      new_username = document.getElementById('username').value;
+      sessionStorage.setItem("username", new_username);
+      console.log(sessionStorage.getItem("username"));
+      window.location.href = "/"
+    };
+  </script>
 </body>
 </html>
