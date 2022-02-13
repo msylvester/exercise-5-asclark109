@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify
 from functools import wraps
 from itsdangerous import json
-
 from sqlalchemy import true
 
 app = Flask(__name__)
@@ -28,6 +27,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 # }
 chats = {}
 
+
 def newChat(host, session_token):
     authorized_users = dict([
         (session_token, dict([
@@ -35,7 +35,8 @@ def newChat(host, session_token):
             ("expires", datetime.utcnow() + timedelta(hours=6))
         ]))
     ])
-    magic_key = ''.join(random.choices(string.ascii_lowercase + string.digits, k=40))
+    magic_key = ''.join(random.choices(
+        string.ascii_lowercase + string.digits, k=40))
 
     return dict([
         ("authorized_users", authorized_users),
@@ -48,13 +49,16 @@ def newChat(host, session_token):
 def index(chat_id=None):
     return app.send_static_file('index.html')
 
+
 @app.route('/username')
 def auth():
     return app.send_static_file('username.html')
 
+
 @app.route('/authenticate')
-def auth():
+def authenticate():
     return app.send_static_file('auth.html')
+
 
 @app.route('/chat/<int:chat_id>')
 def chat(chat_id):
@@ -62,17 +66,19 @@ def chat(chat_id):
     # to render the site properly
     global chats
     magic_key = chats[chat_id]["magic_key"]
-    invite_link = "?chat_id={}&magic_key={}".format(chat_id,magic_key)
+    invite_link = "?chat_id={}&magic_key={}".format(chat_id, magic_key)
     return render_template('chat.html',
-            chat_id=chat_id,
-            invite_link=invite_link)
+                           chat_id=chat_id,
+                           invite_link=invite_link)
 
 # -------------------------------- API ROUTES ----------------------------------
 
 # TODO: Create the API
 
+
 new_chat_id_number = 1
 new_session_token_number = 1
+
 
 def generate_session_token():
     """returns a new unique session token"""
@@ -81,14 +87,16 @@ def generate_session_token():
     new_session_token_number += 1
     return "session_token_{}".format(new_session_token_number)
 
+
 def generate_new_chat_id():
     """returns a new unique chat id"""
     global new_chat_id_number
     assigned_chat_id = new_chat_id_number
-    new_chat_id_number +=1
+    new_chat_id_number += 1
     return assigned_chat_id
 
-@app.route('/create', methods = ['POST'])
+
+@app.route('/create', methods=['POST'])
 def create():
     # create new chat with new secret invite link
     global chats
@@ -107,24 +115,24 @@ def create():
     print(session_token)
 
     # create new chat
-    new_chat_dict = newChat(host_username,session_token)
+    new_chat_dict = newChat(host_username, session_token)
     print(new_chat_dict)
 
     # add chat to chats dict
     chats[chat_id] = new_chat_dict
     print()
     print(chats)
- 
+
     # return unique chat_id, and session_token to allow creator to identify themselves
     # in subsequent requests
-    return jsonify({"session_token" : session_token,
-                    "chat_id" : chat_id})
+    return jsonify({"session_token": session_token,
+                    "chat_id": chat_id})
 
 
-@app.route('/chat/<chat_id>', methods = ['GET','POST'])
+@app.route('/chat/<chat_id>', methods=['GET', 'POST'])
 def func(chat_id):
     global chats
-    ### POST REQUEST
+    # POST REQUEST
     if request.method == 'GET':
         # require a valid session_token in an authorization header
         # return the messages in the chat.
@@ -133,7 +141,6 @@ def func(chat_id):
         print("ARRIVED")
 
         # access global chats dict datastructure
-        
 
         # receive request
         content = request.get_json()
@@ -145,8 +152,9 @@ def func(chat_id):
         if user_token in chats[int(chat_id)]["authorized_users"].keys():
             print("token validated!: "+user_token)
 
-            print("now: "+ str(datetime.utcnow()))
-            expiration = chats[int(chat_id)]["authorized_users"][user_token]["expires"]
+            print("now: " + str(datetime.utcnow()))
+            expiration = chats[int(
+                chat_id)]["authorized_users"][user_token]["expires"]
 
             # check if token expired
             if datetime.utcnow() > expiration:
@@ -157,10 +165,10 @@ def func(chat_id):
                 print("token not expired!")
 
                 # package up and send all the messages
-                return jsonify({"messages" : chats[int(chat_id)]["messages"]})
+                return jsonify({"messages": chats[int(chat_id)]["messages"]})
         # return empty dict of messages
-        return jsonify({"messages" : dict()})
-    ### GET REQUEST
+        return jsonify({"messages": dict()})
+    # GET REQUEST
     if request.method == 'POST':
         print("ARRIVED")
 
@@ -174,8 +182,9 @@ def func(chat_id):
         if user_token in chats[int(chat_id)]["authorized_users"].keys():
             print("token validated!: "+user_token)
 
-            print("now: "+ str(datetime.utcnow()))
-            expiration = chats[int(chat_id)]["authorized_users"][user_token]["expires"]
+            print("now: " + str(datetime.utcnow()))
+            expiration = chats[int(
+                chat_id)]["authorized_users"][user_token]["expires"]
 
             # check if token expired
             if datetime.utcnow() > expiration:
@@ -194,7 +203,8 @@ def func(chat_id):
                 list_of_comment_dicts = chats[int(chat_id)]["messages"]
                 new_comment_dict = dict()
                 # lookup username
-                username = chats[int(chat_id)]["authorized_users"][user_token]["username"]
+                username = chats[int(
+                    chat_id)]["authorized_users"][user_token]["username"]
                 body = user_comment
                 new_comment_dict = {"username": username, "body": body}
                 print(new_comment_dict)
@@ -202,16 +212,16 @@ def func(chat_id):
                 # update chat comments
                 chats[int(chat_id)]["messages"] = list_of_comment_dicts
                 # see updated chat data
-                print(chats)    
+                print(chats)
 
                 # # require a valid session_token in an authorization header
                 # post a new message to the chat
-                return jsonify({"status" : "successful posting of comment",
-                })
+                return jsonify({"status": "successful posting of comment",
+                                })
         # # require a valid session_token in an authorization header
         # post a new message to the chat
-        return jsonify({"status" : "failed to post comment",
-        })
+        return jsonify({"status": "failed to post comment",
+                        })
 
 # @app.route('/chat/<chat_id>', methods = ['POST'])
 # def func2(chat_id):
@@ -257,7 +267,7 @@ def func(chat_id):
 #             # update chat comments
 #             chats[int(chat_id)]["messages"] = list_of_comment_dicts
 #             # see updated chat data
-#             print(chats)    
+#             print(chats)
 
 #             # # require a valid session_token in an authorization header
 #             # post a new message to the chat
@@ -269,10 +279,10 @@ def func(chat_id):
 #     })
 
 
-@app.route('/api/get_messages', methods = ['GET'])
+@app.route('/api/get_messages', methods=['GET'])
 def func3():
     global chats
-    ### POST REQUEST
+    # POST REQUEST
     if request.method == 'GET':
         # require a valid session_token in an authorization header
         # return the messages in the chat.
@@ -281,7 +291,6 @@ def func3():
         print("ARRIVED: MESSAGES")
 
         # access global chats dict datastructure
-        
 
         # receive request
         content = request.get_json()
@@ -296,8 +305,9 @@ def func3():
         if user_token in chats[int(chat_id)]["authorized_users"].keys():
             print("token validated!: "+user_token)
 
-            print("now: "+ str(datetime.utcnow()))
-            expiration = chats[int(chat_id)]["authorized_users"][user_token]["expires"]
+            print("now: " + str(datetime.utcnow()))
+            expiration = chats[int(
+                chat_id)]["authorized_users"][user_token]["expires"]
 
             # check if token expired
             if datetime.utcnow() > expiration:
@@ -308,10 +318,10 @@ def func3():
                 print("token not expired!")
 
                 # package up and send all the messages
-                return jsonify({"messages" : chats[int(chat_id)]["messages"]})
+                return jsonify({"messages": chats[int(chat_id)]["messages"]})
         # return empty dict of messages
-        return jsonify({"messages" : dict()})
-    ### GET REQUEST
+        return jsonify({"messages": dict()})
+    # GET REQUEST
     if request.method == 'POST':
         print("ARRIVED")
 
@@ -325,8 +335,9 @@ def func3():
         if user_token in chats[int(chat_id)]["authorized_users"].keys():
             print("token validated!: "+user_token)
 
-            print("now: "+ str(datetime.utcnow()))
-            expiration = chats[int(chat_id)]["authorized_users"][user_token]["expires"]
+            print("now: " + str(datetime.utcnow()))
+            expiration = chats[int(
+                chat_id)]["authorized_users"][user_token]["expires"]
 
             # check if token expired
             if datetime.utcnow() > expiration:
@@ -345,7 +356,8 @@ def func3():
                 list_of_comment_dicts = chats[int(chat_id)]["messages"]
                 new_comment_dict = dict()
                 # lookup username
-                username = chats[int(chat_id)]["authorized_users"][user_token]["username"]
+                username = chats[int(
+                    chat_id)]["authorized_users"][user_token]["username"]
                 body = user_comment
                 new_comment_dict = {"username": username, "body": body}
                 print(new_comment_dict)
@@ -353,16 +365,17 @@ def func3():
                 # update chat comments
                 chats[int(chat_id)]["messages"] = list_of_comment_dicts
                 # see updated chat data
-                print(chats)    
+                print(chats)
 
                 # # require a valid session_token in an authorization header
                 # post a new message to the chat
-                return jsonify({"status" : "successful posting of comment",
-                })
+                return jsonify({"status": "successful posting of comment",
+                                })
         # # require a valid session_token in an authorization header
         # post a new message to the chat
-        return jsonify({"status" : "failed to post comment",
-        })
+        return jsonify({"status": "failed to post comment",
+                        })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
