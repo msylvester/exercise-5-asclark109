@@ -1,225 +1,145 @@
+#!/usr/bin/env node
+
+   
 /* For index.html */
 
-// TODO: If a user clicks to create a chat, create a session token for them
-// and save it. Redirect the user to /chat/<chat_id>
-function createChat() {
-  
-    if (sessionStorage.username === undefined) {
-      location.href = "/username";
-    }
-    else {
-      console.log("lets create a chat!")
-      // we have a username defined. create a chat. prepare
-      // to send the create request to the python API
-      host_username = sessionStorage.username
+const USERNAME = "username";
+const SESSION_TOKEN = "session_token";
+const CHAT_ID = "chat_id";
+const MAGIC_KEY = "magic_key";
+const BODY = "body";
+const MESSAGE_ID = "message_id";
 
-      options = {
-        method: 'POST',
-        headers:{
-          'Content-Type':'application/json'
-        },
-        body: JSON.stringify({
-          'username': host_username,
-        })
-      };
+function createSessionStorageKey(chat_id, keyString)
+{
+  return `${chat_id}_${keyString}`;
+}
 
-      console.log("sending request to python API / server")
-      // send request and get response...ultimately stored in "json"
-      fetch( '/create', options).then((response) => {
-        console.log(response);
-        return response.json()
-      }).then((json) => {
-        console.log(json);
-        console.log("obtained response from server! parsed to JSON!")
-
-      // response should contain host_session_token and chat_id
-      // print chat id
-      console.log("Storing chat_id: ",json.chat_id);
-      // sessionStorage.setItem("session_token",json.session_token)
-
-      // Store Session Token
-      console.log("Storing Session_token: ",json.session_token);
-      sessionStorage.setItem("session_token",json.session_token)
-  
-      // Redirect to chat
-      // console.log(redirect)
-      window.location.href = "/chat/" + String(json.chat_id);;
-      
-      });
-    }
+async function createChat() {
+  let nameElement = document.getElementById(USERNAME);
+  let formData = new FormData();
+  formData.append(USERNAME, nameElement.value);
+  let results = await fetch("/api/create", {
+    method: "POST",
+    body: formData
+  });
+  let resultsJson = await results.json();
+  window.sessionStorage.setItem(createSessionStorageKey(resultsJson.chat_id, SESSION_TOKEN), resultsJson.session_token);
+  window.sessionStorage.setItem(createSessionStorageKey(resultsJson.chat_id, USERNAME), nameElement.value);
+  location.href = `/chat/${resultsJson.chat_id}`;
 }
 
 /* For auth.html */
-
-// TODO: On page load, pull chat_id and magic_key out of the URL parameters
-// Send them to the auth API endpoint to get a session token
-// If the user authenticaes successfully, save the session token
-// and redirect them to /chat/<chat_id>
-function authenticate() {
-  // okay, we want to pull out of the url the chat_id and magic_key,
-  // if there is a failure, we redirect to the homepage.
-  
-  return;
+async function authenticate() {
+  let params = new URLSearchParams(window.location.search);
+  let chat_id = params.get(CHAT_ID);
+  let magic_key = params.get(MAGIC_KEY);
+  let nameElement = document.getElementById(USERNAME);
+  let username = nameElement.value;
+  let formData = new FormData();
+  formData.append(CHAT_ID, chat_id);
+  formData.append(MAGIC_KEY, magic_key);
+  formData.append(USERNAME, username);
+  let results = await fetch("/api/authenticate", {
+    method: "POST",
+    body: formData
+  });
+  let resultsJson = await results.json();
+  if(results.status >= 400)
+  {
+    alert(resultsJson.message);
+    location.href = "/";
+  }
+  else
+  {
+    window.sessionStorage.setItem(createSessionStorageKey(chat_id, SESSION_TOKEN), resultsJson.session_token);
+    window.sessionStorage.setItem(createSessionStorageKey(chat_id, USERNAME), username);
+    location.href = `/chat/${chat_id}`; 
+  }
 }
 
 /* For chat.html */
+async function postMessage(chat_id) {
+  let commentElement = document.querySelector("input[name=comment]");
+  let comment = commentElement.value;
+  let username = sessionStorage.getItem(createSessionStorageKey(chat_id, USERNAME));
 
-// TODO: Fetch the list of existing chat messages.
-// POST to the API when the user posts a new message.
-// Automatically poll for new messages on a regular interval.
-function postMessage() {
-
-  // if (localStorage.username === undefined) {
-  //   location.href = "/username";
-  // }
-  // else {
-    console.log("lets post a message!")
-    // prepare to send the post message request to the python API
-  
-    // get token of user (user needs a token if they are to be on this page)
-    user_token = sessionStorage.session_token
-  
-    comment = document.getElementById("messageBox").value
-  
-    options = {
-      method: 'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'user_token': user_token
-      },
-      body: JSON.stringify({
-        'comment': comment
-      })
-    };
-  
-    console.log("sending request to python API / server: post message")
-    // send request and get response...ultimately stored in "json"
-    // get current chat_id
-    const urlParams = new URLSearchParams(window.location.search);
-    console.log(urlParams);
-    // if (urlParams.has('chat_id')
-  
-    fetch( '/chat/1', options).then((response) => {
-      console.log(response);
-      return response.json()
-    }).then((json) => {
-      console.log(json);
-      console.log("obtained response from server! parsed to JSON!");
-  
-    // response should contain host_session_token and chat_id
-    // print chat id
-    console.log("comment submission status: ",json.status);
-    // sessionStorage.setItem("session_token",json.session_token)
-  
-    // Redirect to chat
-    // console.log(redirect)
-    // window.location.href = "/chat/" + String(json.chat_id);;
-    
-    });
-    //}
-    return;
-}
-
-function getMessages() {
-  // if (localStorage.username === undefined) {
-  //   location.href = "/username";
-  // }
-  // else {
-  console.log("let's obtain the messages!")
-  // prepare to send the post message request to the python API
-
-  // get token of user (user needs a token if they are to be on this page)
-  user_token = sessionStorage.session_token
-
-  // options = {
-  //   method: 'GET',
-  //   headers:{
-  //     'Accept': 'application/json',
-  //     'user_token': user_token
-  //   }
-  // };
-
-  options = {
-    method: 'GET',
-    headers:{
-      'Accept': 'application/json',
-      'user_token': user_token,
-      'chat_id': "1",
-      'new': "true"
-    }
-  };
-
-  console.log(options);
-
-  console.log("sending request to python API / server: get messages")
-  // send request and get response...ultimately stored in "json"
-  // get current chat_id
-  const urlParams = new URLSearchParams(window.location.search);
-  console.log(urlParams);
-  // if (urlParams.has('chat_id')
-
-  fetch( '/api/get_messages', options).then((response) => {
-    console.log(response);
-    return response.json()
-  }).then((json) => {
-    console.log(json);
-    console.log("obtained response from server! parsed to JSON!");
-  // fetch( '/chat/1', options).then((response) => {
-  //   console.log(response);
-  //   return response.json()
-  // }).then((json) => {
-  //   console.log(json);
-  //   console.log("obtained response from server! parsed to JSON!");
-
-  msgs= json.messages
-  // reponse should have a dict of messages:
-
-  // re-write messages
-  // first erase them
-  commentContainer = document.querySelector(".messages")
-  while (commentContainer.innerHTML.trim() != ""){
-    commentContainer.lastElementChild.remove();
-  }
-
-  // write the messages
-  for (let i = 0; i < msgs.length; i++) {
-    let body = msgs[i]["body"];
-    let username = msgs[i]["username"];
-    message_elem = document.createElement('message');
-    author_elem = document.createElement('author');
-    author_elem.textContent = username;
-    content_elem = document.createElement('content');
-    content_elem.textContent = body;
-    message_elem.appendChild(author_elem)
-    message_elem.appendChild(content_elem)
-    commentContainer.appendChild(message_elem)
-  }
-
-
-
-
-  
-
-  
-  // response should contain host_session_token and chat_id
-  // print chat id
-  // console.log("comment submission status: ",json.status);
-  // sessionStorage.setItem("session_token",json.session_token)
-
-  // Redirect to chat
-  // console.log(redirect)
-  //window.location.href = "/chat/" + String(json.chat_id);;
-  
+  let formData = new FormData();
+  formData.append(USERNAME, username);
+  formData.append(BODY, comment);
+  let session_token = sessionStorage.getItem(createSessionStorageKey(chat_id, SESSION_TOKEN));
+  let headers = new Headers();
+  // I realize I'm not using the Authorization header properly here, as I'm not specifying "Basic" authentication
+  // for example. I put the session_token directly in the Authorization header for ease of implementation. The
+  // proper use would require base64 encoding too, which doesn't seem worth the trouble.
+  headers.append("Authorization", session_token);  
+  let results = await fetch(`/api/chat/${chat_id}`, {
+    method: "POST",
+    body: formData,
+    headers: headers
   });
-  //}
-  
-  return;
+  let resultsJson = await results.json();
+  if(results.status >= 400)
+  {
+    alert(resultsJson.message);
+  }
 }
 
-function startMessagePolling() {
-  // var intervalID = setInterval(getMessages,500);
-  // setTimeout(function() {
-  //   console.log("looking for content");
-  // }, 4 * 1000);
-  return;
+async function startMessagePolling(chat_id) {
+  sessionStorage.setItem(createSessionStorageKey(chat_id, MESSAGE_ID), 0);
+  let magic_link_anchor = document.querySelector("a.magic_link");
+  let magic_link = magic_link_anchor.getAttribute("href");
+  while(true)
+  {
+    //await sleep(500);
+    // While I could grab the session token outside the loop, I grab it in the loop to make
+    // this easier to debug (I can change the session token in the console while the loop is running).
+    let session_token = sessionStorage.getItem(createSessionStorageKey(chat_id, SESSION_TOKEN));
+    let headers = new Headers();
+    // I realize I'm not using the Authorization header properly here, as I'm not specifying "Basic" authentication
+    // for example. I put the session_token directly in the Authorization header for ease of implementation. The
+    // proper use would require base64 encoding too, which doesn't seem worth the trouble.
+    headers.append("Authorization", session_token);  
+    let message_id = parseInt(sessionStorage.getItem(createSessionStorageKey(chat_id, MESSAGE_ID)));
+    let results = await fetch(`/api/chat/${chat_id}?${MESSAGE_ID}=${message_id}`, {
+      method: "GET",
+      headers: headers
+    });
+    let resultsJson = await results.json();
+    if(results.status >= 400)
+    {
+      alert(resultsJson.message + " Please re-authenticate.");
+      location.href = magic_link;
+      break;
+    }
+    else
+    {
+       let messagesDiv = document.querySelector("div.messages");
+       let max_message_id = -1;
+       for(let message of resultsJson)
+       {
+         let singleMessageDiv = document.createElement("div");
+         singleMessageDiv.setAttribute("class", "message");
+         let messageTextNode = document.createTextNode(`${message.username}: ${message.body}`);
+         singleMessageDiv.appendChild(messageTextNode);
+         messagesDiv.appendChild(singleMessageDiv);
+         max_message_id = Math.max(max_message_id, message.message_id)
+       }
+
+       if (max_message_id > -1)
+       {
+         sessionStorage.setItem(createSessionStorageKey(chat_id, MESSAGE_ID), max_message_id + 1)
+       }
+    }
+  }
+}
+
+function chatOnLoad(chat_id) {
+  let usernameDiv = document.getElementById(USERNAME);
+  let textNode = document.createTextNode(`Username: ${sessionStorage.getItem(createSessionStorageKey(chat_id, USERNAME))}`);
+  usernameDiv.appendChild(textNode);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

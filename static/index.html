@@ -1,28 +1,19 @@
 <html>
 <head>
   <title>Watch Party</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/static/style.css"></link>
   <script src="/static/script.js"></script>
 </head>
 <body>
-  <div class="container">
+<div class="container">
 
-    <hero>
-      <logo>
-        <img id="tv" src="static/tv.jpeg">
-        <img id="popcorn" src="static/popcorn.png">
-      </logo>
-      <h1>Watch Party</h1>
-      <button id="myButton" value="create">Create a Chat!</button>
-    </hero>
-  </div>
+<div class="hero">
+  <h1>Watch Party</h1>
+  <label for="username">Enter a username!</label>
+  <input type="text" id="username" name="username">
+  <button onclick="createChat()">Create a Chat!</button>
+</div>
 
-  <!-- NEW: when user hits create chat button, we run creatChat() method -->
-  <script>
-    document.getElementById("myButton").onclick = createChat;
-  </script>
+</div>
 </body>
 </html>
